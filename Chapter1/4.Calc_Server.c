@@ -8,19 +8,20 @@
 #define TRUE    1
 #define FALSE   0
 
-int calculator(uint8_t operator, int* data, int num)
+int calculator(uint8_t operator, uint8_t* data, int num)
 {
-    int ret = (int*)&data;
+    int ret = 0;
     switch(operator)
     {
         case '+':
-            for(int i = 1; i < num; i++) ret += data[i];
+            for(int i = 0; i < num; i++) ret += (int)data[i * 4];
             break;
         case '-':
-            for(int i = 1; i < num; i++) ret -= data[i];
+            for(int i = 0; i < num; i++) ret -= (int)data[i * 4];
             break;
         case '*':
-            for(int i = 1; i < num; i++) ret *= data[i];
+            ret = 1;
+            for(int i = 0; i < num; i++) ret *= (int)data[i * 4];
             break;
         default:
             ret = -1;
@@ -31,7 +32,7 @@ int calculator(uint8_t operator, int* data, int num)
 
 int main(int argc, char* argv[])
 {
-    int datas[10];
+    uint8_t datas[100];
     uint8_t operand_num, operator;
     int length = 0;
 
@@ -77,18 +78,20 @@ int main(int argc, char* argv[])
     }
 
     read(sock_clnt, &operand_num, 1);
+    printf("Get Operand Num : %d \n", operand_num - 48);
 
     while(TRUE)
     {
-        length = read(sock_clnt, &datas, operand_num * 4);
-
-        if(length > operand_num * 4)
+        length += read(sock_clnt, datas, (operand_num - 48) * 4);
+        
+        if(length >= (operand_num - 48) * 4)
             break;
     }
-
+    
     read(sock_clnt, &operator, 1);
 
-    int ret = calculator(operator, datas, operand_num);
+    int ret = calculator(operator, datas, operand_num - 48);
+    printf("Calc : %d \n", ret);
     write(sock_clnt, &ret, 4);
 
     close(sock_clnt); close(sock_serv);

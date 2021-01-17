@@ -10,10 +10,11 @@
 
 int main(int argc, char* argv[])
 {
-    int operand_num;
+    uint8_t operand_num;
     int length = 0;
+    int ret;
     uint8_t operator;
-    uint8_t data[255];
+    uint8_t data[255] = {0, };
     
     if(argc != 3)
     {
@@ -48,20 +49,23 @@ int main(int argc, char* argv[])
 
     fputs("Operand num : ", stdout);
     operand_num = fgetc(stdin);
-    fgetc(stdin);
     data[length++] = operand_num;
 
-    for(int i = 0; i < operand_num; i++)
+    for(int i = 0; i < operand_num - 48; i++)
     {
-        pritnf("Operand %d : ", i + 1);
-        scanf("%d", &data[1 + i * 4]);
-        length += i * 4;
+        printf("Operand %d : ", i + 1);
+        scanf("%d", (int*)&data[1 + i * 4]);
+        length += 4;
     }
 
+    fgetc(stdin);
     fputs("operator : ", stdout);
     data[length++] = fgetc(stdin);
 
-    write(sock_clnt, &data, length);
+    write(sock_clnt, data, length);
+    read(sock_clnt, &ret, 4);
+
+    printf("Get : %d \n", ret);
     close(sock_clnt);
 
     printf("Socket communicaion end!\n");
