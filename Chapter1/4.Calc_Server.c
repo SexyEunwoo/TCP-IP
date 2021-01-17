@@ -8,8 +8,30 @@
 #define TRUE    1
 #define FALSE   0
 
+int calculator(uint8_t operator, int* data, int num)
+{
+    int ret = (int*)&data;
+    switch(operator)
+    {
+        case '+':
+            for(int i = 1; i < num; i++) ret += data[i];
+            break;
+        case '-':
+            for(int i = 1; i < num; i++) ret -= data[i];
+            break;
+        case '*':
+            for(int i = 1; i < num; i++) ret *= data[i];
+            break;
+        default:
+            ret = -1;
+    }
+
+    return ret;
+}
+
 int main(int argc, char* argv[])
 {
+    int datas[10];
     uint8_t operand_num, operator;
     int length = 0;
 
@@ -54,21 +76,20 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    read(sock_clnt, &operand_num, 1);
+
     while(TRUE)
     {
-        read(sock_clnt, operand_num, 1);
-        printf("Get Operand : %d \n", operand_num);
-        int temp[5] = { 0, };
-        for(int i = 0; i < operand_num; i++)
-        {
-            read(sock_clnt, &temp[i], 4);
-            printf("Get %d  : %d \n", i+1, temp[i]);
-        }
-        read(sock_clnt, &operator, 1);
+        length = read(sock_clnt, &datas, operand_num * 4);
 
-        int ret = GetReturn(operator, temp, operand_num);
-        write(sock_clnt, &ret, 4);
+        if(length > operand_num * 4)
+            break;
     }
+
+    read(sock_clnt, &operator, 1);
+
+    int ret = calculator(operator, datas, operand_num);
+    write(sock_clnt, &ret, 4);
 
     close(sock_clnt); close(sock_serv);
 
